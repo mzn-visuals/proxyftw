@@ -28,7 +28,7 @@ const https       = require("https");
 const { URL }     = require("url");
 const { execFile } = require("child_process");
 
-const PORT = parseInt(process.env.PORT || "8080", 10);
+const PORT = parseInt(process.env.PORT || "10000", 10);
 
 // Write YouTube cookies from env var to temp file for yt-dlp
 const COOKIE_FILE = "/tmp/yt-cookies.txt";
