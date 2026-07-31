@@ -1,8 +1,10 @@
-# Use a lightweight Node.js base image
 FROM node:18-slim
 
-# Install ffmpeg, wget, and python3 (yt-dlp often needs python to bootstrap JS challenges)
-RUN apt-get update && apt-get install -y ffmpeg wget python3 && rm -rf /var/lib/apt/lists/*
+# Install ffmpeg, wget, python3, pip, and deno
+RUN apt-get update && \
+    apt-get install -y ffmpeg wget python3 python3-pip curl unzip && \
+    curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
@@ -10,12 +12,10 @@ WORKDIR /usr/src/app
 COPY package.json ./
 RUN npm install
 
-# Download the latest yt-dlp binary and make it executable
-RUN mkdir -p ./bin && \
-    wget -q -O ./bin/yt-dlp https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp && \
-    chmod 755 ./bin/yt-dlp
+# Install yt-dlp properly via pip
+RUN pip3 install --break-system-packages -U yt-dlp
 
-# Copy the rest of your app code (proxy.js, etc.)
+# Copy the rest of your app code
 COPY . .
 
 # Expose the port your proxy.js uses
