@@ -1,10 +1,9 @@
 # Use a lightweight Node.js base image
 FROM node:18-slim
 
-# Install ffmpeg and wget with root privileges
-RUN apt-get update && apt-get install -y ffmpeg wget && rm -rf /var/lib/apt/lists/*
+# Install ffmpeg, wget, AND nodejs for yt-dlp's JS challenge solver
+RUN apt-get update && apt-get install -y ffmpeg wget nodejs && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
 WORKDIR /usr/src/app
 
 # Copy package.json and install Node dependencies
