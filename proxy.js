@@ -30,6 +30,15 @@ const { execFile } = require("child_process");
 
 const PORT = parseInt(process.env.PORT || "8080", 10);
 
+// Write YouTube cookies from env var to temp file for yt-dlp
+const COOKIE_FILE = "/tmp/yt-cookies.txt";
+if (process.env.YOUTUBE_COOKIES) {
+  require("fs").writeFileSync(COOKIE_FILE, process.env.YOUTUBE_COOKIES, "utf8");
+  console.log("[proxy] YouTube cookies loaded from env.");
+} else {
+  console.warn("[proxy] No YOUTUBE_COOKIES env var — yt-dlp may fail bot check.");
+}
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin":  "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS, HEAD",
@@ -87,7 +96,7 @@ function resolveViaYtDlp(videoId) {
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
     execFile(
       "./bin/yt-dlp",
-      ["--no-playlist", "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio", "--get-url", "--js-runtimes", "node", ytUrl],
+      ["--no-playlist", "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio", "--get-url", "--cookies", COOKIE_FILE, ytUrl],
       { timeout: 20000 },
       (err, stdout, stderr) => {
         streamInFlight.delete(videoId);
