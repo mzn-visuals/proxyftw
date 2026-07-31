@@ -96,7 +96,14 @@ function resolveViaYtDlp(videoId) {
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
     execFile(
       "./bin/yt-dlp",
-      ["--no-playlist", "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio", "--get-url", "--cookies", COOKIE_FILE, ytUrl],
+      [
+        "--no-playlist",
+        "--ffmpeg-location", "./bin",
+        "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio",
+        "--get-url",
+        "--cookies", COOKIE_FILE,
+        ytUrl
+      ],
       { timeout: 20000 },
       (err, stdout, stderr) => {
         streamInFlight.delete(videoId);
@@ -125,8 +132,10 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ url: audioUrl }));
       })
       .catch(({ err, stderr }) => {
-        console.error(`[stream] yt-dlp error for ${videoId}:`, stderr || err.message);
-        res.end(JSON.stringify({ error: stderr?.trim() || err.message }));
+        const stdErrOutput = stderr ? stderr.trim() : "No stderr output";
+        console.error(`[stream] yt-dlp error for ${videoId}: ${err.message}`);
+        console.error(`[stream] yt-dlp stderr: ${stdErrOutput}`);
+        res.end(JSON.stringify({ error: stdErrOutput }));
       });
     return;
   }
@@ -145,7 +154,10 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({ status: "warming" }));
     resolveViaYtDlp(videoId)
       .then(() => console.info(`[prewarm] ready ${videoId}`))
-      .catch(() => console.info(`[prewarm] failed ${videoId}`));
+      .catch(({ err, stderr }) => {
+        const stdErrOutput = stderr ? stderr.trim() : "No stderr output";
+        console.info(`[prewarm] failed ${videoId}: ${stdErrOutput}`);
+      });
     return;
   }
 
