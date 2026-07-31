@@ -1,11 +1,8 @@
 # Use a lightweight Node.js base image
 FROM node:18-slim
 
-# Install ffmpeg and wget
-RUN apt-get update && apt-get install -y ffmpeg wget && rm -rf /var/lib/apt/lists/*
-
-# Expose Node.js to the system PATH so yt-dlp can find it for JS challenges
-RUN ln -s $(which node) /usr/local/bin/node
+# Install ffmpeg, wget, and python3 (yt-dlp often needs python to bootstrap JS challenges)
+RUN apt-get update && apt-get install -y ffmpeg wget python3 && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src/app
 
