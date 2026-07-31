@@ -1,8 +1,11 @@
 # Use a lightweight Node.js base image
 FROM node:18-slim
 
-# Install ffmpeg, wget, AND nodejs for yt-dlp's JS challenge solver
-RUN apt-get update && apt-get install -y ffmpeg wget nodejs && rm -rf /var/lib/apt/lists/*
+# Install ffmpeg and wget
+RUN apt-get update && apt-get install -y ffmpeg wget && rm -rf /var/lib/apt/lists/*
+
+# Expose Node.js to the system PATH so yt-dlp can find it for JS challenges
+RUN ln -s $(which node) /usr/local/bin/node
 
 WORKDIR /usr/src/app
 
