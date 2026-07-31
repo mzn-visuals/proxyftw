@@ -95,10 +95,10 @@ function resolveViaYtDlp(videoId) {
   const promise = new Promise((resolve, reject) => {
     const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
     execFile(
-      "yt-dlp",
+      "/usr/local/bin/yt-dlp",
       [
         "--no-playlist",
-        "--ffmpeg-location", "./bin",
+        "--remote-components", "ejs:github",
         "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio",
         "--get-url",
         "--cookies", COOKIE_FILE,
