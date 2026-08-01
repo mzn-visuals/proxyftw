@@ -98,7 +98,7 @@ function resolveViaYtDlp(videoId) {
       "/usr/local/bin/yt-dlp",
       [
         "--no-playlist",
-        "--extractor-args", "youtube:player_client=android",
+        "--extractor-args", "youtube:player_client=ios",
         "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio",
         "--get-url",
         "--cookies", COOKIE_FILE,
