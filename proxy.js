@@ -103,7 +103,7 @@ function resolveViaYtDlp(videoId) {
         "--cookies", COOKIE_FILE,
         ytUrl
       ],
-      { timeout: 12000 },
+      { timeout: 30000 },
       (err, stdout, stderr) => {
         streamInFlight.delete(videoId);
         if (err) { reject({ err, stderr }); return; }
