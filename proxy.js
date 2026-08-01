@@ -98,12 +98,13 @@ function resolveViaYtDlp(videoId) {
       "/usr/local/bin/yt-dlp",
       [
         "--no-playlist",
+        "--remote-components", "ejs:github",
         "-f", "bestaudio[ext=webm]/bestaudio[ext=m4a]/bestaudio",
         "--get-url",
         "--cookies", COOKIE_FILE,
         ytUrl
       ],
-      { timeout: 30000 },
+      { timeout: 20000 },
       (err, stdout, stderr) => {
         streamInFlight.delete(videoId);
         if (err) { reject({ err, stderr }); return; }
