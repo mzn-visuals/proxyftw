@@ -139,6 +139,53 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ---- /pipe/:videoId — resolve + stream audio back to browser ----
+  // Browser never touches YouTube CDN directly; proxy pipes it through.
+  const pipeMatch = req.url.match(/^\/pipe\/([A-Za-z0-9_-]{11})(\?.*)?$/);
+  if (pipeMatch) {
+    const videoId = pipeMatch[1];
+    resolveViaYtDlp(videoId)
+      .then(audioUrl => {
+        console.info(`[pipe] streaming ${videoId}`);
+        const rangeHeader = req.headers['range'];
+        const upHeaders = {
+          "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "referer": "https://www.youtube.com/",
+          "origin": "https://www.youtube.com",
+        };
+        if (rangeHeader) upHeaders['range'] = rangeHeader;
+
+        const upReq = https.request(audioUrl, { headers: upHeaders }, upRes => {
+          const outHeaders = {
+            ...CORS_HEADERS,
+            "Content-Type": upRes.headers["content-type"] || "audio/webm",
+            "Accept-Ranges": "bytes",
+          };
+          if (upRes.headers["content-length"]) outHeaders["Content-Length"] = upRes.headers["content-length"];
+          if (upRes.headers["content-range"])  outHeaders["Content-Range"]  = upRes.headers["content-range"];
+          res.writeHead(upRes.statusCode, outHeaders);
+          upRes.pipe(res);
+        });
+        upReq.on("error", err => {
+          console.error(`[pipe] upstream error ${videoId}:`, err.message);
+          if (!res.headersSent) {
+            res.writeHead(502, { ...CORS_HEADERS, "Content-Type": "application/json" });
+            res.end(JSON.stringify({ error: err.message }));
+          }
+        });
+        upReq.end();
+      })
+      .catch(({ err, stderr }) => {
+        const stdErrOutput = stderr ? stderr.trim() : "No stderr output";
+        console.error(`[pipe] yt-dlp error ${videoId}: ${err.message}`);
+        if (!res.headersSent) {
+          res.writeHead(500, { ...CORS_HEADERS, "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: stdErrOutput }));
+        }
+      });
+    return;
+  }
+
   // ---- /prewarm/:videoId — fire-and-forget, returns immediately ----
   // Called on hover so yt-dlp runs before the user clicks
   const prewarmMatch = req.url.match(/^\/prewarm\/([A-Za-z0-9_-]{11})(\?.*)?$/);
