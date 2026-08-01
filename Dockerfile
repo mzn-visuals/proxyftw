@@ -13,7 +13,7 @@ COPY package.json ./
 RUN npm install
 
 # Install yt-dlp properly via pip
-RUN pip3 install --break-system-packages -U yt-dlp
+RUN pip3 install --break-system-packages -U "yt-dlp[default]"
 
 # Copy the rest of your app code
 COPY . .
